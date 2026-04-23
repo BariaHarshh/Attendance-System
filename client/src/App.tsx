@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { UserCheck, GraduationCap, ClipboardCheck, Radio, CheckCircle2, Smartphone, Monitor, Download } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import axios from 'axios'
 
 // Supabase Setup
@@ -19,7 +20,8 @@ interface AttendanceRecord {
 }
 
 function App() {
-  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop')
+  const isNative = Capacitor.isNativePlatform()
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>(isNative ? 'mobile' : 'desktop')
   const [name, setName] = useState('')
   const [records, setRecords] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(false)
@@ -114,30 +116,32 @@ function App() {
       )}
 
       {/* View Toggle & Install Button */}
-      <div className="fixed top-6 right-6 z-50 flex flex-col items-end gap-3">
-        <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-2xl shadow-2xl">
+      {!isNative && (
+        <div className="fixed top-6 right-6 z-50 flex flex-col items-end gap-3">
+          <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-2xl shadow-2xl">
+            <button 
+              onClick={() => setViewMode('desktop')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${viewMode === 'desktop' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <Monitor size={18} />
+            </button>
+            <button 
+              onClick={() => setViewMode('mobile')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${viewMode === 'mobile' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <Smartphone size={18} />
+            </button>
+          </div>
+          
           <button 
-            onClick={() => setViewMode('desktop')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${viewMode === 'desktop' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+            onClick={handleInstallClick}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-xl transition-all font-bold text-sm"
           >
-            <Monitor size={18} />
-          </button>
-          <button 
-            onClick={() => setViewMode('mobile')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${viewMode === 'mobile' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-          >
-            <Smartphone size={18} />
+            <Download size={18} />
+            Install App
           </button>
         </div>
-        
-        <button 
-          onClick={handleInstallClick}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-xl transition-all font-bold text-sm"
-        >
-          <Download size={18} />
-          Install App
-        </button>
-      </div>
+      )}
 
       <div className={isWakingUp ? 'opacity-20 blur-sm pointer-events-none' : 'transition-all duration-700'}>
         {viewMode === 'desktop' ? (
@@ -203,11 +207,11 @@ function App() {
             </main>
           </div>
         ) : (
-          /* MOBILE APP SIMULATOR */
-          <div className="flex justify-center items-center py-12">
-            <div className="w-[375px] h-[750px] bg-slate-950 border-[8px] border-slate-800 rounded-[3rem] overflow-hidden relative shadow-[0_0_80px_rgba(0,0,0,0.5)] flex flex-col">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-800 rounded-b-2xl z-20"></div>
-              <div className="flex-1 overflow-y-auto p-6 pt-10">
+        /* MOBILE APP SIMULATOR / NATIVE APP */
+        <div className={`flex justify-center items-center ${isNative ? '' : 'py-12'}`}>
+          <div className={isNative ? "w-full h-screen bg-slate-950 flex flex-col pt-safe" : "w-[375px] h-[750px] bg-slate-950 border-[8px] border-slate-800 rounded-[3rem] overflow-hidden relative shadow-[0_0_80px_rgba(0,0,0,0.5)] flex flex-col"}>
+            {!isNative && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-800 rounded-b-2xl z-20"></div>}
+            <div className={`flex-1 overflow-y-auto p-6 ${isNative ? 'pt-12' : 'pt-10'}`}>
                 <header className="mb-8 flex justify-between items-start">
                   <div>
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Attendance App</p>
