@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance System | Supabase Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: white;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .status-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-present {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .connection-status {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        #empty-state {
+            text-align: center;
+            color: var(--text-dim);
+            padding: 2rem;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Attendance System</h1>
+        <p style="color: var(--text-dim)">Supabase Real-time Sync Test</p>
+    </div>
+
+    <div class="container">
+        <!-- Teacher Section -->
+        <div class="card">
+            <h2>👨‍🏫 Teacher Panel</h2>
+            <div class="form-group">
+                <label for="studentName">Student Name</label>
+                <input type="text" id="studentName" placeholder="Enter student name...">
+            </div>
+            <button id="markPresentBtn">Mark as Present</button>
+            <p id="teacherFeedback" style="margin-top: 1rem; font-size: 0.875rem; text-align: center;"></p>
+        </div>
+
+        <!-- Student Section -->
+        <div class="card">
+            <h2>🎓 Student Dashboard</h2>
+            <ul id="attendanceList" class="status-list">
+                <!-- Data will appear here -->
+                <div id="empty-state">No attendance records yet.</div>
+            </ul>
+        </div>
+    </div>
+
+    <div id="connStatus" class="connection-status">
+        Connecting to Supabase...
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://tmrsdvtdtbuqjhedtmqp.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_304VG6Qmgh5cUvz3RTjSEg_DUSBVb3a';
+
+        // Initialize Supabase Client
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const markPresentBtn = document.getElementById('markPresentBtn');
+        const studentNameInput = document.getElementById('studentName');
+        const attendanceList = document.getElementById('attendanceList');
+        const teacherFeedback = document.getElementById('teacherFeedback');
+        const connStatus = document.getElementById('connStatus');
+        const emptyState = document.getElementById('empty-state');
+
+        // Check Connection
+        async function checkConnection() {
+            try {
+                // Try to fetch something to verify connection
+                const { data, error } = await supabaseClient.from('attendance').select('id').limit(1);
+                if (error) throw error;
+                connStatus.innerText = '✅ Connected to Supabase';
+                connStatus.style.color = '#10b981';
+            } catch (err) {
+                console.error(err);
+                connStatus.innerText = '❌ Connection Error: ' + err.message;
+                connStatus.style.color = '#ef4444';
+            }
+        }
+
+        // Fetch initial data
+        async function fetchAttendance() {
+            const { data, error } = await supabaseClient
+                .from('attendance')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (data && data.length > 0) {
+                if (emptyState) emptyState.style.display = 'none';
+                attendanceList.innerHTML = '';
+                data.forEach(item => addAttendanceToUI(item));
+            }
+        }
+
+        // Add item to UI
+        function addAttendanceToUI(item) {
+            if (emptyState) emptyState.style.display = 'none';
+            
+            const li = document.createElement('li');
+            li.className = 'status-item';
+            li.innerHTML = `
+                <span>${item.student_name}</span>
+                <span class="badge badge-present">Present</span>
+            `;
+            attendanceList.prepend(li);
+        }
+
+        // Real-time subscription
+        const channel = supabaseClient
+            .channel('public:attendance')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'attendance' }, payload => {
+                console.log('New record!', payload);
+                addAttendanceToUI(payload.new);
+            })
+            .subscribe();
+
+        // Mark Attendance
+        markPresentBtn.addEventListener('click', async () => {
+            const name = studentNameInput.value.trim();
+            if (!name) {
+                teacherFeedback.innerText = 'Please enter a name';
+                teacherFeedback.style.color = '#f87171';
+                return;
+            }
+
+            markPresentBtn.disabled = true;
+            teacherFeedback.innerText = 'Marking...';
+            teacherFeedback.style.color = '#94a3b8';
+
+            const { error } = await supabaseClient
+                .from('attendance')
+                .insert([{ student_name: name, status: 'Present' }]);
+
+            if (error) {
+                teacherFeedback.innerText = 'Error: ' + error.message;
+                teacherFeedback.style.color = '#f87171';
+            } else {
+                teacherFeedback.innerText = 'Successfully marked ' + name + ' as Present!';
+                teacherFeedback.style.color = '#34d399';
+                studentNameInput.value = '';
+            }
+            markPresentBtn.disabled = false;
+        });
+
+        // Initialize
+        checkConnection();
+        fetchAttendance();
+    </script>
+</body>
+</html>
