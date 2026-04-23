@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { UserCheck, GraduationCap, ClipboardCheck, Radio, CheckCircle2, Smartphone, Monitor, Download, AlertTriangle } from 'lucide-react'
+import { UserCheck, GraduationCap, ClipboardCheck, Radio, CheckCircle2, Smartphone, Monitor, Download } from 'lucide-react'
 import axios from 'axios'
 
 // Supabase Setup
